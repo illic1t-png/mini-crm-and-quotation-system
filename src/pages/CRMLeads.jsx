@@ -10,15 +10,22 @@ export default function LeadsPage() {
   const [status, setStatus] = useState("");
   const [leads, setLeads] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [leadToEdit, setLeadToEdit] = useState(null);
+  const [isLoading, setIsLoading] = useState(true);
   
   const loadLeads = async () => {
-    if (!currentUser) {
-      setLeads([]);
-      return;
-    }
+    setIsLoading(true);
+    try {
+      if (!currentUser) {
+        setLeads([]);
+        return;
+      }
 
-    const data = await getLeads();
-    setLeads(data);
+      const data = await getLeads();
+      setLeads(data);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   useEffect(() => {
@@ -27,9 +34,19 @@ export default function LeadsPage() {
 
   const handleLeadSaved = async () => {
     setShowForm(false);
+    setLeadToEdit(null);
     await loadLeads();
   };
 
+  const handleEditLead = (lead) => {
+    setLeadToEdit(lead);
+    setShowForm(true);
+  };
+
+  const handleCloseForm = () => {
+    setShowForm(false);
+    setLeadToEdit(null);
+  };
 
   const filteredLeads = useMemo(() => {
     return leads.filter((lead) => {
@@ -71,7 +88,7 @@ export default function LeadsPage() {
               onChange={(e) => setStatus(e.target.value)}
               className="min-w-[12rem] flex-none rounded-xl border border-gray-200 px-3 py-2 text-sm"
             >
-              <option value="">All statuses</option>
+              <option value="">All</option>
               <option value="New">New</option>
               <option value="Contacted">Contacted</option>
               <option value="Quoted">Quoted</option>
@@ -93,6 +110,8 @@ export default function LeadsPage() {
       <LeadTable
         leads={filteredLeads}
         onDelete={deleteLead}
+        onEdit={handleEditLead}
+        isLoading={isLoading}
       />
 
       {showForm && (
@@ -100,17 +119,23 @@ export default function LeadsPage() {
           <div className="w-full max-w-2xl rounded-2xl bg-white p-6 shadow-2xl">
             <div className="mb-4 flex items-center justify-between">
               <div>
-                <h2 className="text-xl font-semibold text-gray-900">Create lead</h2>
+                <h2 className="text-xl font-semibold text-gray-900">
+                  {leadToEdit ? "Edit lead" : "Create lead"}
+                </h2>
               </div>
               <button
                 type="button"
-                onClick={() => setShowForm(false)}
+                onClick={handleCloseForm}
                 className="text-sm text-gray-500 hover:text-gray-700"
               >
                 Close
               </button>
             </div>
-            <LeadsForm onSaved={handleLeadSaved} onCancel={() => setShowForm(false)} />
+            <LeadsForm
+              leadToEdit={leadToEdit}
+              onSaved={handleLeadSaved}
+              onCancel={handleCloseForm}
+            />
           </div>
         </div>
       )}

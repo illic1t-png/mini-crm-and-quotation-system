@@ -32,10 +32,7 @@ export const createLead = async (fullName, phone, email, address, status = "New"
       updatedAt: serverTimestamp(),
     });
 
-    console.log("AUTH:", auth.currentUser);
-    console.log("DB:", db);
     console.log("SUCCESS:", docRef.id);
-    console.log("Total Leads in DB:", (await getDocs(collection(db, "leads"))).size);
 
     return docRef.id;
   } catch (e) {

@@ -12,10 +12,16 @@ export default function CRMQuotes() {
   const [quotations, setQuotations] = useState([]);
   const [clients, setClients] = useState([]);
   const [showForm, setShowForm] = useState(false);
+  const [isLoading, setIsLoading] = useState(true);
 
   const loadQuotations = async () => {
-    const data = await getQuotations();
-    setQuotations(data);
+    setIsLoading(true);
+    try {
+      const data = await getQuotations();
+      setQuotations(data);
+    } finally {
+      setIsLoading(false);
+    }
   };
 
   const loadClients = async () => {
@@ -73,7 +79,7 @@ export default function CRMQuotes() {
             type="text"
             value={query}
             onChange={(event) => setQuery(event.target.value)}
-            placeholder="Search client or quote #"
+            placeholder="Search client..."
             className="min-w-0 flex-auto max-w-xs rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none ring-0 transition focus:border-accent"
           />
 
@@ -82,7 +88,7 @@ export default function CRMQuotes() {
             onChange={(event) => setStatus(event.target.value)}
             className="min-w-[12rem] flex-none rounded-xl border border-gray-200 px-3 py-2 text-sm outline-none transition focus:border-accent"
           >
-            <option value="">All statuses</option>
+            <option value="">All</option>
             <option value="Draft">Draft</option>
             <option value="Sent">Sent</option>
             <option value="Accepted">Accepted</option>
@@ -99,7 +105,7 @@ export default function CRMQuotes() {
         </button>
       </div>
 
-      <QuotationTable quotations={filteredQuotes} clients={clients} onUpdate={handleQuotationUpdated} />
+      <QuotationTable quotations={filteredQuotes} clients={clients} onUpdate={handleQuotationUpdated} isLoading={isLoading} />
 
       {showForm && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">

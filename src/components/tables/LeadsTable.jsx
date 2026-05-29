@@ -1,8 +1,8 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import DataTable from "../common/DataTable";
 import StatusBadge from "../common/StatusBadge";
 
-const LeadsTable = ({ leads = [], onDelete, onEdit }) => {
+const LeadsTable = ({ leads = [], onDelete, onEdit, isLoading = false }) => {
   const [selectedLead, setSelectedLead] = useState(null);
   const [isDeleteConfirmOpen, setIsDeleteConfirmOpen] = useState(false);
   const columns = [
@@ -25,6 +25,21 @@ const LeadsTable = ({ leads = [], onDelete, onEdit }) => {
     setIsDeleteConfirmOpen(true);
   };
 
+  // Pagination
+  const [page, setPage] = useState(1);
+  const rowsPerPage = 10;
+  const totalPages = Math.max(1, Math.ceil(leads.length / rowsPerPage));
+
+  // Clamp page when totalPages decreases
+  useEffect(() => {
+    if (page > totalPages) setPage(totalPages);
+  }, [page, totalPages]);
+
+  // Reset to first page when leads list changes (filters/search)
+  useEffect(() => {
+    setPage(1);
+  }, [leads.length]);
+
   const confirmDelete = () => {
     if (!selectedLead) return;
 
@@ -37,14 +52,65 @@ const LeadsTable = ({ leads = [], onDelete, onEdit }) => {
     setIsDeleteConfirmOpen(false);
   };
 
+  const renderSkeletonRows = () => {
+    return Array.from({ length: 10 }, (_, index) => (
+      <tr key={`skeleton-${index}`} className="border-t border-gray-100">
+        <td className="px-4 py-3"><div className="h-3 rounded-full bg-slate-200 opacity-80" /></td>
+        <td className="px-4 py-3"><div className="h-3 rounded-full bg-slate-200 opacity-80" /></td>
+        <td className="px-4 py-3"><div className="h-3 rounded-full bg-slate-200 opacity-80" /></td>
+        <td className="px-4 py-3"><div className="h-3 rounded-full bg-slate-200 opacity-80" /></td>
+        <td className="px-4 py-3"><div className="h-3 rounded-full bg-slate-200 opacity-80" /></td>
+      </tr>
+    ));
+  };
+
   return (
     <>
-      <DataTable
-        columns={columns}
-        rows={leads}
-        emptyMessage="No leads found"
-        onRowClick={(lead) => setSelectedLead(lead)}
-      />
+      {isLoading ? (
+        <div className="overflow-hidden rounded-2xl border border-gray-200 bg-white shadow-sm">
+          <table className="w-full border-collapse text-left text-sm">
+            <thead className="bg-gray-50 text-xs uppercase tracking-wide text-gray-500">
+              <tr>
+                <th className="px-4 py-3 font-semibold">Full Name</th>
+                <th className="px-4 py-3 font-semibold">Email</th>
+                <th className="px-4 py-3 font-semibold">Phone</th>
+                <th className="px-4 py-3 font-semibold">Status</th>
+                <th className="px-4 py-3 font-semibold">Created</th>
+              </tr>
+            </thead>
+            <tbody>{renderSkeletonRows()}</tbody>
+          </table>
+        </div>
+      ) : (
+        <DataTable
+          columns={columns}
+          rows={leads.slice((page - 1) * rowsPerPage, page * rowsPerPage)}
+          emptyMessage="No leads found"
+          onRowClick={(lead) => setSelectedLead(lead)}
+        />
+      )}
+
+      {!isLoading && totalPages > 1 && (
+        <div className="mt-3 flex items-center justify-end gap-2 text-sm text-gray-600">
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.max(1, p - 1))}
+            disabled={page === 1}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-1 disabled:opacity-50"
+          >
+            Prev
+          </button>
+          <div className="px-2">Page {page} of {totalPages}</div>
+          <button
+            type="button"
+            onClick={() => setPage((p) => Math.min(totalPages, p + 1))}
+            disabled={page === totalPages}
+            className="rounded-lg border border-gray-200 bg-white px-3 py-1 disabled:opacity-50"
+          >
+            Next
+          </button>
+        </div>
+      )}
 
       {selectedLead && (
         <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/30 p-4">
