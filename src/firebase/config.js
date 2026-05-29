@@ -16,7 +16,12 @@ const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-if (import.meta.env.VITE_FIREBASE_EMULATOR === "true") {
+console.log("Firestore initialized");
+
+
+if (
+  import.meta.env.DEV
+) {
   connectAuthEmulator(auth, "http://localhost:9099");
   connectFirestoreEmulator(db, "localhost", 8080);
 }

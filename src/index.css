@@ -2,3 +2,19 @@
 @plugin "daisyui" {
     themes: false;
 };
+
+@theme {
+  --color-accent: #1D9E75;
+  --color-accent-light: #E1F5EE;
+  --color-accent-text: #085041;
+
+  --color-bg-primary: #ffffff;
+  --color-bg-secondary: #f5f6f7;
+  --color-bg-tertiary: #eef0f2;
+
+  --font-sans: "DM Sans", sans-serif;
+  --font-mono: "DM Mono", monospace;
+
+  --radius-lg: 14px;
+  --radius-md: 10px;
+}
